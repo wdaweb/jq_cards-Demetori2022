@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Godzilla_Card_Game</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			height: 100vh;
+			background: url('./Image/background.jpg') no-repeat center center/cover;
+		}
+
+		#game {
+			width: 36%;
+			height: 90%;
+			position: relative;
+			top: 50%;
+			left: 30%;
+			transform: translate(-30%, -50%);
+			display: flex;
+			flex-flow: column;
+		}
+
+		#top-card {
+			width: 100%;
+			height: 50%;
+			border-top-left-radius: 15px;
+			border-top-right-radius: 15px;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-evenly;
+			align-content: space-around;
+			background-color: rgba(0, 0, 0, 0.5);
+			backdrop-filter: blur(10px);
+			box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1),
+				10px 10px 10px rgba(0, 0, 0, 0.3),
+				15px 15px 15px rgba(0, 0, 0, 0.5)
+		}
+
+		#bottom-card {
+			width: 100%;
+			height: 50%;
+			border-bottom-left-radius: 15px;
+			border-bottom-right-radius: 15px;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-evenly;
+			align-content: space-around;
+			background-color: rgba(255, 0, 0, 0.3);
+			backdrop-filter: blur(10px);
+			box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1),
+				10px 10px 10px rgba(0, 0, 0, 0.3),
+				15px 15px 15px rgba(0, 0, 0, 0.5);
+		}
+
+		.blue-card {
+			width: 17%;
+			height: 42%;
+			border-radius: 50%;
+			/* 設定子元素在 3D 空間內 */
+			transform-style: preserve-3d;
+			transition: transform 1s;
+		}
+
+		.blue-card-back {
+			width: 100%;
+			height: 100%;
+			border-radius: 15px;
+			background-image: url('./Image/BCB.jpg');
+			background-size: 100% 100%;
+			object-fit: cover;
+			position: absolute;
+			backface-visibility: hidden;
+		}
+
+		.orange-card {
+			width: 17%;
+			height: 42%;
+			border-radius: 50%;
+			/* 設定子元素在 3D 空間內 */
+			transform-style: preserve-3d;
+			transition: transform 1s;
+		}
+
+		.card-front {
+			width: 100%;
+			height: 100%;
+			border-radius: 5px;
+			background-size: 100% 100%;
+			object-fit: cover;
+			position: absolute;
+			transform: rotateY(180deg);
+			/* 翻過來後隱藏另一面 */
+			backface-visibility: hidden;
+		}
+
+		.orange-card-back {
+			width: 100%;
+			height: 100%;
+			border-radius: 15px;
+			background-image: url('./Image/OCB.jpg');
+			background-size: 100% 100%;
+			object-fit: cover;
+			position: absolute;
+			backface-visibility: hidden;
+		}
+
+		.card-open {
+			transform: rotateY(180deg);
+		}
+
+		.blue-card:hover,
+		.orange-card:hover {
+			cursor: pointer;
+			transform: scale(1.1);
+		}
+	</style>
+</head>
+
+<body>
+	<div id="game">
+		<div id="top-card"></div>
+		<div id="bottom-card"></div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'
+		integrity='sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=='
+		crossorigin='anonymous'></script>
+	<script>
+		// 上排卡片區
+		// 產生卡片
+		for (let i = 0; i < 10; i++) {
+			$('#top-card').append(`
+				<div class="blue-card">
+					<div class="card-front"></div>
+					<div class="blue-card-back"></div>
+				</div>
+			`)
+		}
+		for (let i = 0; i < 10; i++) {
+			// 決定數字
+			const num = i % 10 + 1
+			$('.blue-card').eq(i).find('.card-front').css('background-image', `url(./Image/${num}G.png)`)
+			$('.blue-card').eq(i).attr('data-top-card', num)
+
+			// 打散
+			const target = Math.round(Math.random() * 9)
+			$('.blue-card').eq(target).insertAfter($('.blue-card').eq(i))
+		}
+
+		$('#top-card').on('click', '.blue-card', function () {
+			// 最多一次翻一張 且這張牌還沒翻開
+			if ($('#top-card').find('.card-open').length < 1 && !$(this).hasClass('card-open')) {
+				$(this).addClass("card-open")
+			}
+
+			// 如果上下翻開兩張了
+			if ($('.card-open').length === 2) {
+				// 如果上下的卡片數字相同
+				if ($('#top-card').find('.card-open').attr('data-top-card') === $('#bottom-card').find('.card-open').attr('data-bottom-card')) {
+					// 用 class 標記已完成
+					$('.card-open').addClass('card-ok')
+					// 將 .card-front 淡出 如果對 .card-open 淡出會把 3D 壓平只看到卡背
+					$('.card-open .card-front').fadeTo(1000, 0)
+				}
+
+				// 不過是否一樣都將卡片翻回
+				setTimeout(function () {
+					// 如果 .card-open 裡的 .card-front 透明度不是1 把 .card-open 透明度設為 0
+					$('.card-open').each(function () {
+						if ($(this).find('.card-front').css('opacity') !== '1') {
+							$(this).css('opacity', 0)
+						}
+						$('.card-open').removeClass('card-open')
+					})
+				}, 1000)
+			}
+		})
+
+		// 下排卡片區
+		for (let i = 0; i < 10; i++) {
+			$('#bottom-card').append(`
+				<div class="orange-card">
+					<div class="card-front"></div>
+					<div class="orange-card-back"></div>
+				</div>
+			`)
+		}
+		for (let i = 0; i < 10; i++) {
+			// 決定數字
+			const num1 = i % 10 + 1
+			$('.orange-card').eq(i).find('.card-front').css('background-image', `url(./Image/${num1}H.jpg)`)
+			$('.orange-card').eq(i).attr('data-bottom-card', num1)
+
+			// 打散
+			const target = Math.round(Math.random() * 9)
+			$('.orange-card').eq(target).insertAfter($('.orange-card').eq(i))
+		}
+
+		$('#bottom-card').on('click', '.orange-card', function () {
+			// 最多一次翻一張 且這張牌還沒翻開
+			if ($('#bottom-card').find('.card-open').length < 1 && !$(this).hasClass('card-open')) {
+				$(this).addClass("card-open")
+			}
+
+			// 如果上下翻開兩張了
+			if ($('.card-open').length === 2) {
+				// 如果上下的卡片數字相同
+				if ($('#top-card').find('.card-open').attr('data-top-card') === $('#bottom-card').find('.card-open').attr('data-bottom-card')) {
+					// 用 class 標記已完成
+					$('.card-open').addClass('card-ok')
+					// 將 .card-front 淡出 如果對 .card-open 淡出會把 3D 壓平只看到卡背
+					$('.card-open .card-front').fadeTo(1000, 0)
+				}
+
+				// 不過是否一樣都將卡片翻回
+				setTimeout(function () {
+					// 如果 .card-open 裡的 .card-front 透明度不是1 把 .card-open 透明度設為 0
+					$('.card-open').each(function () {
+						if ($(this).find('.card-front').css('opacity') !== '1') {
+							$(this).css('opacity', 0)
+						}
+					})
+					$('.card-open').removeClass('card-open')
+					if ($('.card-ok').length === 20) {
+						Swal.fire({
+							heightAuto: false,
+							allowOutsideClick: false,
+							title: '恭喜你全部答對',
+							text: '你已經可以分辨出不同類型的哥吉拉了！',
+							footer: '<a href="javascript:window.location.reload()" class="replay"> > 我想再玩一次！ < </a>',
+							imageUrl: './Image/bye.png',
+						})
+					}
+				}, 1000)
+			}
+		})
+	</script>
+</body>
+
+</html>
